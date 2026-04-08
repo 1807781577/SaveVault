@@ -1,28 +1,32 @@
 ---
-name: Bug Report
-about: Report a bug or issue
+name: 问题反馈
+about: 报告 bug 或问题
 title: '[Bug] '
 labels: bug
 assignees: ''
 ---
 
-## Bug Description
-Describe what the bug is.
+## 问题描述
+简要描述遇到的问题。
 
-## Steps to Reproduce
-1. Go to '...'
-2. Click on '...'
-3. See error
+## 复现步骤
+1. 打开 '...'
+2. 点击 '...'
+3. 出现错误
 
-## Expected Behavior
-What did you expect to happen?
+## 期望结果
+你期望发生什么？
 
-## Screenshots
-If applicable, add screenshots.
+## 实际结果
+实际发生了什么？
 
-## Environment
-- OS: Windows 10 / Windows 11
-- SaveVault Version: (e.g., v1.1.0)
+## 截图
+如果有的话，请添加截图帮助解释问题。
 
-## Additional Context
-Any other information about the problem.
+## 环境信息
+- 操作系统：Windows 10 / Windows 11
+- SaveVault 版本：(例如 v1.1.0)
+- 游戏名称：(如果是特定游戏的问题)
+
+## 其他信息
+其他有助于解决问题的信息。
