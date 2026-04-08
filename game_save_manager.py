@@ -742,16 +742,37 @@ class GameSaveManager:
         backup_path = Path(info['backup_dir']) / backup_name
         
         if not messagebox.askyesno("确认恢复", 
-                                   f"确定恢复到 '{backup_name}' 吗？\n\n当前存档将被覆盖！"):
+                                   f"确定恢复到 '{backup_name}' 吗？\n\n当前存档将被覆盖！\n（恢复前会自动备份当前存档）"):
             return
         
         try:
             self.root.config(cursor="watch")
             self.root.update()
+            
+            # 恢复前自动备份当前存档
             if save_path.exists():
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                auto_backup_name = f"_auto_backup_before_restore_{timestamp}"
+                auto_backup_path = Path(info['backup_dir']) / auto_backup_name
+                
+                try:
+                    shutil.copytree(save_path, auto_backup_path)
+                    print(f"已自动备份当前存档到: {auto_backup_name}")
+                except Exception as e:
+                    # 如果自动备份失败，询问是否继续
+                    self.root.config(cursor="")
+                    if not messagebox.askyesno("自动备份失败", 
+                                               f"恢复前自动备份失败：{str(e)}\n\n是否仍要继续恢复？"):
+                        return
+                    self.root.config(cursor="watch")
+                
+                # 删除当前存档
                 shutil.rmtree(save_path)
+            
+            # 恢复备份
             shutil.copytree(backup_path, save_path)
-            messagebox.showinfo("成功", "存档恢复成功！")
+            self.refresh_backup_list()
+            messagebox.showinfo("成功", f"存档恢复成功！\n\n当前存档已自动备份")
         except Exception as e:
             messagebox.showerror("错误", f"恢复失败: {str(e)}")
         finally:

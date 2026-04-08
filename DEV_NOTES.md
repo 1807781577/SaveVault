@@ -52,3 +52,20 @@ git push
 
 ---
 创建时间: 2026-04-08
+
+```bash
+  下次继续开发时，只需告诉我：
+
+  - 项目位置：D:\game_save_manager
+  - GitHub：https://github.com/1807781577/game-save-manager
+  - 想要做什么修改/优化
+
+  下次继续开发
+  下次打开终端，运行：
+
+  cd D:\game_save_manager
+  python game_save_manager.py
+
+  然后告诉我你想修改什么，我会根据项目代码继续帮你开发。
+```
+
