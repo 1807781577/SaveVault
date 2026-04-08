@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SaveVault - 游戏存档备份工具
-支持多游戏、多存档管理，自动识别存档位置
+SaveVault - Game Save Manager
+Supports multi-game, multi-save management with auto-detection
 """
 
 import os
@@ -14,44 +14,211 @@ from datetime import datetime
 from pathlib import Path
 import winreg
 
-# ==================== 游戏数据库 ====================
+# ==================== 语言包 / Language Packs ====================
+
+LANGUAGES = {
+    "zh": {
+        # 标题 / Titles
+        "app_title": "SaveVault",
+        "game_list": "游戏列表",
+        "save_backup": "存档备份",
+        "add_game": "添加游戏",
+        
+        # 按钮 / Buttons
+        "add": "添加游戏",
+        "delete": "删除",
+        "edit_path": "编辑路径",
+        "create_backup": "创建备份",
+        "restore": "恢复",
+        "rename": "重命名",
+        "open_dir": "打开目录",
+        "scan": "扫描存档",
+        "db_detect": "数据库检测",
+        "browse": "浏览",
+        "browse_save": "浏览存档目录",
+        "confirm": "确定",
+        "cancel": "取消",
+        
+        # 标签 / Labels
+        "game_name": "游戏名称:",
+        "game_dir": "游戏目录:",
+        "save_path": "存档路径:",
+        "current_save": "当前存档:",
+        "select_game": "请选择游戏",
+        "scan_result": "扫描结果:",
+        
+        # 表头 / Table Headers
+        "backup_name": "备份名称",
+        "create_time": "创建时间",
+        "size": "大小",
+        
+        # 消息 / Messages
+        "select_game_first": "请先选择一个游戏",
+        "select_backup_first": "请先选择一个备份",
+        "enter_game_name": "请输入游戏名称",
+        "select_save_path": "请选择存档路径",
+        "game_exists": "游戏已存在",
+        "save_path_not_exist": "存档路径不存在",
+        "backup_created": "备份创建成功",
+        "backup_failed": "备份失败",
+        "restore_success": "存档恢复成功！\n\n当前存档已自动备份",
+        "restore_failed": "恢复失败",
+        "delete_success": "备份已删除",
+        "delete_failed": "删除失败",
+        "rename_success": "重命名成功",
+        "rename_failed": "重命名失败",
+        "path_updated": "路径已更新",
+        "game_added": "已添加游戏",
+        
+        # 确认对话框 / Confirm Dialogs
+        "confirm_delete_game": "确定要删除游戏 '{}' 吗？\n（备份文件不会被删除）",
+        "confirm_restore": "确定恢复到 '{}' 吗？\n\n当前存档将被覆盖！\n（恢复前会自动备份当前存档）",
+        "confirm_delete_backup": "确定删除备份 '{}' 吗？",
+        "auto_backup_failed": "恢复前自动备份失败：{}\n\n是否仍要继续恢复？",
+        
+        # 对话框 / Dialogs
+        "add_game_title": "添加游戏",
+        "create_backup_title": "创建备份",
+        "enter_backup_name": "请输入备份名称:",
+        "rename_title": "重命名",
+        "new_name": "新名称:",
+        
+        # 状态 / Status
+        "scanning": "正在扫描...",
+        "found_paths": "找到 {} 个可能的存档目录",
+        "not_found": "未找到存档，请手动选择",
+        "db_found": "已从数据库检测",
+        "db_not_found": "数据库中未找到",
+        "scan_hint": "选择游戏目录或输入名称后点击扫描",
+        "games_count": "已添加 {} 款游戏 | 数据目录: {}",
+        
+        # 其他 / Others
+        "language": "语言",
+        "chinese": "中文",
+        "english": "English",
+    },
+    "en": {
+        # Titles
+        "app_title": "SaveVault",
+        "game_list": "Game List",
+        "save_backup": "Save Backups",
+        "add_game": "Add Game",
+        
+        # Buttons
+        "add": "Add Game",
+        "delete": "Delete",
+        "edit_path": "Edit Path",
+        "create_backup": "Create Backup",
+        "restore": "Restore",
+        "rename": "Rename",
+        "open_dir": "Open Folder",
+        "scan": "Scan Saves",
+        "db_detect": "DB Detect",
+        "browse": "Browse",
+        "browse_save": "Browse Save Dir",
+        "confirm": "OK",
+        "cancel": "Cancel",
+        
+        # Labels
+        "game_name": "Game Name:",
+        "game_dir": "Game Directory:",
+        "save_path": "Save Path:",
+        "current_save": "Current Save:",
+        "select_game": "Select a game",
+        "scan_result": "Scan Results:",
+        
+        # Table Headers
+        "backup_name": "Backup Name",
+        "create_time": "Created",
+        "size": "Size",
+        
+        # Messages
+        "select_game_first": "Please select a game first",
+        "select_backup_first": "Please select a backup first",
+        "enter_game_name": "Please enter game name",
+        "select_save_path": "Please select save path",
+        "game_exists": "Game already exists",
+        "save_path_not_exist": "Save path does not exist",
+        "backup_created": "Backup created successfully",
+        "backup_failed": "Backup failed",
+        "restore_success": "Save restored successfully!\n\nCurrent save has been auto-backed up",
+        "restore_failed": "Restore failed",
+        "delete_success": "Backup deleted",
+        "delete_failed": "Delete failed",
+        "rename_success": "Renamed successfully",
+        "rename_failed": "Rename failed",
+        "path_updated": "Path updated",
+        "game_added": "Game added",
+        
+        # Confirm Dialogs
+        "confirm_delete_game": "Delete game '{}'?\n(Backup files will not be deleted)",
+        "confirm_restore": "Restore to '{}'?\n\nCurrent save will be overwritten!\n(Current save will be auto-backed up)",
+        "confirm_delete_backup": "Delete backup '{}'?",
+        "auto_backup_failed": "Auto-backup failed: {}\n\nContinue with restore?",
+        
+        # Dialogs
+        "add_game_title": "Add Game",
+        "create_backup_title": "Create Backup",
+        "enter_backup_name": "Enter backup name:",
+        "rename_title": "Rename",
+        "new_name": "New name:",
+        
+        # Status
+        "scanning": "Scanning...",
+        "found_paths": "Found {} possible save directories",
+        "not_found": "No saves found, please select manually",
+        "db_found": "Found in database",
+        "db_not_found": "Not found in database",
+        "scan_hint": "Select game directory or enter name, then click Scan",
+        "games_count": "{} games added | Data: {}",
+        
+        # Others
+        "language": "Language",
+        "chinese": "中文",
+        "english": "English",
+    }
+}
+
+# ==================== 游戏数据库 / Game Database ====================
 
 GAME_SAVE_PATHS = {
-    # FromSoftware
     "艾尔登法环": ["{APPDATA}/EldenRing"],
+    "Elden Ring": ["{APPDATA}/EldenRing"],
     "只狼": ["{APPDATA}/Sekiro"],
+    "Sekiro": ["{APPDATA}/Sekiro"],
     "黑暗之魂3": ["{APPDATA}/DarkSoulsIII"],
-    "黑暗之魂2": ["{APPDATA}/DarkSoulsII"],
-    "装甲核心6": ["{APPDATA}/ArmoredCore6"],
-    # CD Projekt Red
+    "Dark Souls 3": ["{APPDATA}/DarkSoulsIII"],
     "赛博朋克2077": ["{SAVEDGAMES}/CD Projekt Red/Cyberpunk 2077"],
+    "Cyberpunk 2077": ["{SAVEDGAMES}/CD Projekt Red/Cyberpunk 2077"],
     "巫师3": ["{SAVEDGAMES}/CD Projekt Red/The Witcher 3"],
-    # Bethesda
-    "上古卷轴5": ["{DOCUMENTS}/My Games/Skyrim Special Edition"],
-    "辐射4": ["{DOCUMENTS}/My Games/Fallout4"],
-    "星空": ["{DOCUMENTS}/My Games/Starfield"],
-    # Larian
+    "The Witcher 3": ["{SAVEDGAMES}/CD Projekt Red/The Witcher 3"],
     "博德之门3": ["{LOCALAPPDATA}/Larian Studios/Baldur's Gate 3/PlayerProfiles/Public/Savegames"],
-    "神界原罪2": ["{LOCALAPPDATA}/Larian Studios/Divinity Original Sin 2/PlayerProfiles/Public/SaveGames"],
-    # Capcom
-    "怪物猎人：世界": ["{DOCUMENTS}/CAPCOM/MHW"],
-    "怪物猎人：崛起": ["{DOCUMENTS}/CAPCOM/MHRise"],
-    "生化危机4重制版": ["{LOCALAPPDATA}/CAPCOM/Resident Evil 4"],
-    "鬼泣5": ["{LOCALAPPDATA}/CAPCOM/DevilMayCry5"],
-    # 其他热门
+    "Baldur's Gate 3": ["{LOCALAPPDATA}/Larian Studios/Baldur's Gate 3/PlayerProfiles/Public/Savegames"],
     "霍格沃茨之遗": ["{LOCALAPPDATA}/Hogwarts Legacy/Saved/SaveGames"],
+    "Hogwarts Legacy": ["{LOCALAPPDATA}/Hogwarts Legacy/Saved/SaveGames"],
     "黑神话：悟空": ["{LOCALAPPDATA}/b1/Saved/SaveGames"],
+    "Black Myth: Wukong": ["{LOCALAPPDATA}/b1/Saved/SaveGames"],
     "荒野大镖客2": ["{DOCUMENTS}/Rockstar Games/Red Dead Redemption 2/Profiles"],
+    "Red Dead Redemption 2": ["{DOCUMENTS}/Rockstar Games/Red Dead Redemption 2/Profiles"],
     "GTA5": ["{DOCUMENTS}/Rockstar Games/GTA V/Profiles"],
+    "GTA V": ["{DOCUMENTS}/Rockstar Games/GTA V/Profiles"],
     "我的世界": ["{APPDATA}/.minecraft"],
+    "Minecraft": ["{APPDATA}/.minecraft"],
     "泰拉瑞亚": ["{DOCUMENTS}/My Games/Terraria"],
+    "Terraria": ["{DOCUMENTS}/My Games/Terraria"],
     "星露谷物语": ["{APPDATA}/StardewValley"],
+    "Stardew Valley": ["{APPDATA}/StardewValley"],
     "空洞骑士": ["{LOCALAPPDATA}/../LocalLow/Team Cherry/Hollow Knight"],
+    "Hollow Knight": ["{LOCALAPPDATA}/../LocalLow/Team Cherry/Hollow Knight"],
     "哈迪斯": ["{DOCUMENTS}/Hades"],
-    "死亡搁浅": ["{LOCALAPPDATA}/KojimaProductions/DeathStranding"],
+    "Hades": ["{DOCUMENTS}/Hades"],
+    "怪物猎人：世界": ["{DOCUMENTS}/CAPCOM/MHW"],
+    "Monster Hunter: World": ["{DOCUMENTS}/CAPCOM/MHW"],
     "永劫无间": ["{DOCUMENTS}/Naraka_BladePoint"],
+    "Naraka: Bladepoint": ["{DOCUMENTS}/Naraka_BladePoint"],
     "鬼谷八荒": ["{LOCALAPPDATA}/guigubahuang"],
     "戴森球计划": ["{LOCALAPPDATA}/Dyson Sphere Program"],
+    "Dyson Sphere Program": ["{LOCALAPPDATA}/Dyson Sphere Program"],
 }
 
 SAVE_FOLDER_NAMES = [
@@ -63,10 +230,9 @@ SAVE_FOLDER_NAMES = [
     'Saved', 'SaveGames', 'SavedGames',
 ]
 
-# ==================== 工具函数 ====================
+# ==================== 工具函数 / Utility Functions ====================
 
 def expand_path_vars(path_template):
-    """展开路径变量"""
     path = path_template
     path = path.replace("{APPDATA}", os.environ.get("APPDATA", ""))
     path = path.replace("{LOCALAPPDATA}", os.environ.get("LOCALAPPDATA", ""))
@@ -77,7 +243,6 @@ def expand_path_vars(path_template):
 
 
 def get_steam_path():
-    """获取Steam安装路径"""
     try:
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam")
         path, _ = winreg.QueryValueEx(key, "InstallPath")
@@ -91,7 +256,6 @@ def get_steam_path():
 
 
 def get_steam_userdata_path():
-    """获取Steam userdata路径"""
     steam_path = get_steam_path()
     if steam_path:
         userdata = Path(steam_path) / "userdata"
@@ -101,7 +265,6 @@ def get_steam_userdata_path():
 
 
 def scan_game_dir_for_saves(game_dir):
-    """扫描游戏安装目录寻找存档文件夹"""
     game_path = Path(game_dir)
     if not game_path.exists():
         return []
@@ -125,7 +288,6 @@ def scan_game_dir_for_saves(game_dir):
 
 
 def scan_appdata_for_game(game_name, game_dir=None):
-    """扫描AppData目录寻找游戏存档"""
     found = []
     game_name_clean = game_name.lower().replace(" ", "").replace(":", "").replace("-", "").replace("_", "")
     
@@ -179,7 +341,6 @@ def scan_appdata_for_game(game_name, game_dir=None):
 
 
 def scan_all_local_appdata():
-    """扫描 LocalLow 目录下所有游戏"""
     found = []
     local_low = Path(os.environ.get("LOCALAPPDATA", "")) / "Low"
     if not local_low.exists():
@@ -192,11 +353,9 @@ def scan_all_local_appdata():
     return found
 
 
-# ==================== 样式配置 ====================
+# ==================== 样式配置 / Style Config ====================
 
 class StyleConfig:
-    """UI样式配置"""
-    # 颜色方案
     BG_PRIMARY = "#2b2b2b"
     BG_SECONDARY = "#3c3c3c"
     BG_TERTIARY = "#505050"
@@ -204,108 +363,39 @@ class StyleConfig:
     FG_SECONDARY = "#b0b0b0"
     ACCENT = "#4a9eff"
     ACCENT_HOVER = "#6ab0ff"
-    SUCCESS = "#4caf50"
-    WARNING = "#ff9800"
-    DANGER = "#f44336"
-    
-    # 字体
     FONT_FAMILY = "Microsoft YaHei UI"
     FONT_SIZE_NORMAL = 10
     FONT_SIZE_LARGE = 12
     FONT_SIZE_SMALL = 9
 
 
-# ==================== 主程序 ====================
+# ==================== 主程序 / Main Application ====================
 
-class GameSaveManager:
-    """游戏存档管理器"""
-    
+class SaveVault:
     def __init__(self, root):
         self.root = root
         self.root.title("SaveVault")
         self.root.geometry("900x650")
         self.root.minsize(800, 550)
         
-        # 配置路径
         self.app_dir = Path.home() / ".savevault"
         self.app_dir.mkdir(exist_ok=True)
-        self.config_file = self.app_dir / "games.json"
+        self.config_file = self.app_dir / "config.json"
         
-        # 数据
-        self.games = self.load_config()
+        # 加载配置 / Load config
+        self.config = self.load_config()
+        self.current_lang = self.config.get("language", "zh")
+        self.games = self.config.get("games", {})
         self.current_game = None
         
-        # 设置样式
         self.setup_styles()
-        
-        # 创建界面
         self.create_ui()
         self.refresh_game_list()
-        
-        # 居中窗口
         self.center_window()
     
-    def center_window(self):
-        """窗口居中"""
-        self.root.update_idletasks()
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
-        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.root.winfo_screenheight() // 2) - (height // 2)
-        self.root.geometry(f'{width}x{height}+{x}+{y}')
-    
-    def setup_styles(self):
-        """设置UI样式"""
-        style = ttk.Style()
-        
-        # 尝试使用clam主题作为基础
-        try:
-            style.theme_use('clam')
-        except:
-            pass
-        
-        # 配置框架样式
-        style.configure('TFrame', background=StyleConfig.BG_PRIMARY)
-        style.configure('TLabelframe', background=StyleConfig.BG_PRIMARY, foreground=StyleConfig.FG_PRIMARY)
-        style.configure('TLabelframe.Label', background=StyleConfig.BG_PRIMARY, foreground=StyleConfig.ACCENT,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_LARGE, 'bold'))
-        
-        # 配置标签样式
-        style.configure('TLabel', background=StyleConfig.BG_PRIMARY, foreground=StyleConfig.FG_PRIMARY,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL))
-        style.configure('Header.TLabel', font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_LARGE, 'bold'),
-                       foreground=StyleConfig.ACCENT)
-        style.configure('Info.TLabel', foreground=StyleConfig.FG_SECONDARY,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_SMALL))
-        
-        # 配置按钮样式
-        style.configure('TButton', font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL),
-                       padding=(12, 6))
-        style.configure('Accent.TButton', foreground='white')
-        style.map('Accent.TButton',
-                 background=[('active', StyleConfig.ACCENT_HOVER), ('!active', StyleConfig.ACCENT)])
-        
-        # 配置输入框样式
-        style.configure('TEntry', fieldbackground=StyleConfig.BG_TERTIARY,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL))
-        style.configure('TCombobox', fieldbackground=StyleConfig.BG_TERTIARY,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL))
-        
-        # 配置Treeview样式
-        style.configure('Treeview', 
-                       background=StyleConfig.BG_SECONDARY,
-                       foreground=StyleConfig.FG_PRIMARY,
-                       fieldbackground=StyleConfig.BG_SECONDARY,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL),
-                       rowheight=28)
-        style.configure('Treeview.Heading',
-                       background=StyleConfig.BG_TERTIARY,
-                       foreground=StyleConfig.FG_PRIMARY,
-                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL, 'bold'))
-        style.map('Treeview', background=[('selected', StyleConfig.ACCENT)])
-        
-        # 设置根窗口背景
-        self.root.configure(bg=StyleConfig.BG_PRIMARY)
+    def t(self, key):
+        """获取翻译 / Get translation"""
+        return LANGUAGES.get(self.current_lang, {}).get(key, key)
     
     def load_config(self):
         if self.config_file.exists():
@@ -317,11 +407,48 @@ class GameSaveManager:
         return {}
     
     def save_config(self):
+        self.config["language"] = self.current_lang
+        self.config["games"] = self.games
         with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(self.games, f, ensure_ascii=False, indent=2)
+            json.dump(self.config, f, ensure_ascii=False, indent=2)
+    
+    def center_window(self):
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
+    
+    def setup_styles(self):
+        style = ttk.Style()
+        try:
+            style.theme_use('clam')
+        except:
+            pass
+        
+        style.configure('TFrame', background=StyleConfig.BG_PRIMARY)
+        style.configure('TLabelframe', background=StyleConfig.BG_PRIMARY, foreground=StyleConfig.FG_PRIMARY)
+        style.configure('TLabelframe.Label', background=StyleConfig.BG_PRIMARY, foreground=StyleConfig.ACCENT,
+                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_LARGE, 'bold'))
+        style.configure('TLabel', background=StyleConfig.BG_PRIMARY, foreground=StyleConfig.FG_PRIMARY,
+                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL))
+        style.configure('Header.TLabel', font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_LARGE, 'bold'),
+                       foreground=StyleConfig.ACCENT)
+        style.configure('Info.TLabel', foreground=StyleConfig.FG_SECONDARY,
+                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_SMALL))
+        style.configure('TButton', font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL), padding=(12, 6))
+        
+        style.configure('Treeview', background=StyleConfig.BG_SECONDARY, foreground=StyleConfig.FG_PRIMARY,
+                       fieldbackground=StyleConfig.BG_SECONDARY,
+                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL), rowheight=28)
+        style.configure('Treeview.Heading', background=StyleConfig.BG_TERTIARY, foreground=StyleConfig.FG_PRIMARY,
+                       font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL, 'bold'))
+        style.map('Treeview', background=[('selected', StyleConfig.ACCENT)])
+        
+        self.root.configure(bg=StyleConfig.BG_PRIMARY)
     
     def find_known_save_path(self, game_name):
-        """从已知数据库查找存档路径"""
         if game_name in GAME_SAVE_PATHS:
             for template in GAME_SAVE_PATHS[game_name]:
                 path = expand_path_vars(template)
@@ -337,117 +464,141 @@ class GameSaveManager:
         return None
     
     def create_ui(self):
-        """创建主界面"""
-        # 主容器
         main_container = ttk.Frame(self.root, padding="15")
         main_container.pack(fill=tk.BOTH, expand=True)
         
-        # 顶部标题栏
+        # 顶部栏 / Header
         header_frame = ttk.Frame(main_container)
         header_frame.pack(fill=tk.X, pady=(0, 15))
         
-        title_label = ttk.Label(header_frame, text="SaveVault", style='Header.TLabel',
-                               font=(StyleConfig.FONT_FAMILY, 18, 'bold'))
-        title_label.pack(side=tk.LEFT)
+        self.title_label = ttk.Label(header_frame, text="SaveVault", style='Header.TLabel',
+                                     font=(StyleConfig.FONT_FAMILY, 18, 'bold'))
+        self.title_label.pack(side=tk.LEFT)
         
-        subtitle_label = ttk.Label(header_frame, text="游戏存档备份管理工具", style='Info.TLabel')
-        subtitle_label.pack(side=tk.LEFT, padx=(10, 0), pady=(5, 0))
+        # 语言切换按钮 / Language switch button
+        self.lang_btn = ttk.Button(header_frame, text=self.t("language"), width=8, command=self.toggle_language)
+        self.lang_btn.pack(side=tk.RIGHT)
         
-        # 内容区域
+        # 内容区域 / Content
         content_frame = ttk.Frame(main_container)
         content_frame.pack(fill=tk.BOTH, expand=True)
         
-        # 左侧面板 - 游戏列表
-        left_panel = ttk.LabelFrame(content_frame, text="游戏列表", padding="10")
-        left_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        # 左侧面板 / Left Panel
+        self.left_panel = ttk.LabelFrame(content_frame, text=self.t("game_list"), padding="10")
+        self.left_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
-        # 游戏列表容器
-        list_container = ttk.Frame(left_panel)
+        list_container = ttk.Frame(self.left_panel)
         list_container.pack(fill=tk.BOTH, expand=True)
         
-        # 游戏列表
         self.game_listbox = tk.Listbox(
-            list_container,
-            background=StyleConfig.BG_SECONDARY,
-            foreground=StyleConfig.FG_PRIMARY,
-            selectbackground=StyleConfig.ACCENT,
-            selectforeground='white',
+            list_container, background=StyleConfig.BG_SECONDARY, foreground=StyleConfig.FG_PRIMARY,
+            selectbackground=StyleConfig.ACCENT, selectforeground='white',
             font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_NORMAL),
-            borderwidth=0,
-            highlightthickness=0,
-            activestyle='none'
+            borderwidth=0, highlightthickness=0, activestyle='none'
         )
         self.game_listbox.pack(fill=tk.BOTH, expand=True)
         self.game_listbox.bind('<<ListboxSelect>>', self.on_game_select)
         
-        # 滚动条
         scrollbar = ttk.Scrollbar(list_container, orient=tk.VERTICAL, command=self.game_listbox.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.game_listbox.config(yscrollcommand=scrollbar.set)
         
-        # 游戏操作按钮
-        btn_frame1 = ttk.Frame(left_panel)
+        btn_frame1 = ttk.Frame(self.left_panel)
         btn_frame1.pack(fill=tk.X, pady=(10, 0))
         
-        ttk.Button(btn_frame1, text="添加游戏", command=self.add_game, width=12).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame1, text="删除", command=self.delete_game, width=8).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame1, text="编辑路径", command=self.edit_game_path, width=10).pack(side=tk.LEFT, padx=2)
+        self.add_btn = ttk.Button(btn_frame1, text=self.t("add"), width=12, command=self.add_game)
+        self.add_btn.pack(side=tk.LEFT, padx=2)
+        self.del_btn = ttk.Button(btn_frame1, text=self.t("delete"), width=8, command=self.delete_game)
+        self.del_btn.pack(side=tk.LEFT, padx=2)
+        self.edit_btn = ttk.Button(btn_frame1, text=self.t("edit_path"), width=10, command=self.edit_game_path)
+        self.edit_btn.pack(side=tk.LEFT, padx=2)
         
-        # 右侧面板 - 存档备份
-        right_panel = ttk.LabelFrame(content_frame, text="存档备份", padding="10")
-        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        # 右侧面板 / Right Panel
+        self.right_panel = ttk.LabelFrame(content_frame, text=self.t("save_backup"), padding="10")
+        self.right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
-        # 当前游戏信息
-        info_frame = ttk.Frame(right_panel)
+        info_frame = ttk.Frame(self.right_panel)
         info_frame.pack(fill=tk.X, pady=(0, 10))
         
-        ttk.Label(info_frame, text="当前存档:", style='Info.TLabel').pack(side=tk.LEFT)
-        self.game_info_label = ttk.Label(info_frame, text="请选择游戏", style='Info.TLabel')
+        self.current_save_label = ttk.Label(info_frame, text=self.t("current_save"), style='Info.TLabel')
+        self.current_save_label.pack(side=tk.LEFT)
+        self.game_info_label = ttk.Label(info_frame, text=self.t("select_game"), style='Info.TLabel')
         self.game_info_label.pack(side=tk.LEFT, padx=(5, 0))
         
-        # 备份列表
-        tree_container = ttk.Frame(right_panel)
+        tree_container = ttk.Frame(self.right_panel)
         tree_container.pack(fill=tk.BOTH, expand=True)
         
         columns = ('name', 'date', 'size')
         self.backup_tree = ttk.Treeview(tree_container, columns=columns, show='headings', height=12)
-        self.backup_tree.heading('name', text='备份名称')
-        self.backup_tree.heading('date', text='创建时间')
-        self.backup_tree.heading('size', text='大小')
+        self.backup_tree.heading('name', text=self.t("backup_name"))
+        self.backup_tree.heading('date', text=self.t("create_time"))
+        self.backup_tree.heading('size', text=self.t("size"))
         self.backup_tree.column('name', width=180, minwidth=120)
         self.backup_tree.column('date', width=140, minwidth=100)
         self.backup_tree.column('size', width=80, minwidth=60, anchor='e')
         self.backup_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        # 滚动条
         scrollbar2 = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.backup_tree.yview)
         scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
         self.backup_tree.config(yscrollcommand=scrollbar2.set)
         
-        # 备份操作按钮
-        btn_frame2 = ttk.Frame(right_panel)
+        btn_frame2 = ttk.Frame(self.right_panel)
         btn_frame2.pack(fill=tk.X, pady=(10, 0))
         
-        ttk.Button(btn_frame2, text="创建备份", command=self.create_backup, width=10).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame2, text="恢复", command=self.restore_backup, width=8).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame2, text="删除", command=self.delete_backup, width=8).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame2, text="重命名", command=self.rename_backup, width=8).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame2, text="打开目录", command=self.open_backup_dir, width=10).pack(side=tk.LEFT, padx=2)
+        self.create_btn = ttk.Button(btn_frame2, text=self.t("create_backup"), width=10, command=self.create_backup)
+        self.create_btn.pack(side=tk.LEFT, padx=2)
+        self.restore_btn = ttk.Button(btn_frame2, text=self.t("restore"), width=8, command=self.restore_backup)
+        self.restore_btn.pack(side=tk.LEFT, padx=2)
+        self.del_backup_btn = ttk.Button(btn_frame2, text=self.t("delete"), width=8, command=self.delete_backup)
+        self.del_backup_btn.pack(side=tk.LEFT, padx=2)
+        self.rename_btn = ttk.Button(btn_frame2, text=self.t("rename"), width=8, command=self.rename_backup)
+        self.rename_btn.pack(side=tk.LEFT, padx=2)
+        self.open_dir_btn = ttk.Button(btn_frame2, text=self.t("open_dir"), width=10, command=self.open_backup_dir)
+        self.open_dir_btn.pack(side=tk.LEFT, padx=2)
         
-        # 底部状态栏
+        # 底部状态栏 / Status bar
         status_frame = ttk.Frame(main_container)
         status_frame.pack(fill=tk.X, pady=(10, 0))
         
-        self.status_label = ttk.Label(status_frame, 
-                                      text=f"已添加 {len(self.games)} 款游戏 | 数据目录: {self.app_dir}",
+        self.status_label = ttk.Label(status_frame, text=self.t("games_count").format(len(self.games), self.app_dir),
                                       style='Info.TLabel')
         self.status_label.pack(side=tk.LEFT)
+    
+    def update_ui_text(self):
+        """更新所有UI文本 / Update all UI text"""
+        self.lang_btn.config(text=self.t("language"))
+        self.left_panel.config(text=self.t("game_list"))
+        self.right_panel.config(text=self.t("save_backup"))
+        self.current_save_label.config(text=self.t("current_save"))
+        self.game_info_label.config(text=self.t("select_game"))
+        
+        self.add_btn.config(text=self.t("add"))
+        self.del_btn.config(text=self.t("delete"))
+        self.edit_btn.config(text=self.t("edit_path"))
+        
+        self.create_btn.config(text=self.t("create_backup"))
+        self.restore_btn.config(text=self.t("restore"))
+        self.del_backup_btn.config(text=self.t("delete"))
+        self.rename_btn.config(text=self.t("rename"))
+        self.open_dir_btn.config(text=self.t("open_dir"))
+        
+        self.backup_tree.heading('name', text=self.t("backup_name"))
+        self.backup_tree.heading('date', text=self.t("create_time"))
+        self.backup_tree.heading('size', text=self.t("size"))
+        
+        self.status_label.config(text=self.t("games_count").format(len(self.games), self.app_dir))
+    
+    def toggle_language(self):
+        """切换语言 / Toggle language"""
+        self.current_lang = "en" if self.current_lang == "zh" else "zh"
+        self.save_config()
+        self.update_ui_text()
     
     def refresh_game_list(self):
         self.game_listbox.delete(0, tk.END)
         for name in sorted(self.games.keys()):
             self.game_listbox.insert(tk.END, name)
-        self.status_label.config(text=f"已添加 {len(self.games)} 款游戏 | 数据目录: {self.app_dir}")
+        self.status_label.config(text=self.t("games_count").format(len(self.games), self.app_dir))
     
     def on_game_select(self, event):
         selection = self.game_listbox.curselection()
@@ -456,7 +607,6 @@ class GameSaveManager:
             self.current_game = name
             info = self.games[name]
             save_path = info.get('save_path', '')
-            # 截断过长的路径
             display_path = save_path if len(save_path) <= 60 else "..." + save_path[-57:]
             self.game_info_label.config(text=display_path)
             self.refresh_backup_list()
@@ -488,15 +638,13 @@ class GameSaveManager:
         return f"{size:.1f}TB"
     
     def add_game(self):
-        """添加游戏对话框"""
         dialog = tk.Toplevel(self.root)
-        dialog.title("添加游戏")
+        dialog.title(self.t("add_game_title"))
         dialog.geometry("680x520")
         dialog.transient(self.root)
         dialog.grab_set()
         dialog.configure(bg=StyleConfig.BG_PRIMARY)
         
-        # 居中
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - 340
         y = (dialog.winfo_screenheight() // 2) - 260
@@ -505,62 +653,53 @@ class GameSaveManager:
         main_frame = ttk.Frame(dialog, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # 标题
-        ttk.Label(main_frame, text="添加新游戏", style='Header.TLabel',
+        ttk.Label(main_frame, text=self.t("add_game_title"), style='Header.TLabel',
                  font=(StyleConfig.FONT_FAMILY, 14, 'bold')).grid(row=0, column=0, columnspan=3, 
                                                                    sticky=tk.W, pady=(0, 15))
         
-        # 游戏名称
-        ttk.Label(main_frame, text="游戏名称:").grid(row=1, column=0, sticky=tk.W, pady=8)
+        ttk.Label(main_frame, text=self.t("game_name")).grid(row=1, column=0, sticky=tk.W, pady=8)
         name_var = tk.StringVar()
         name_combo = ttk.Combobox(main_frame, textvariable=name_var, width=55)
         name_combo['values'] = sorted(GAME_SAVE_PATHS.keys())
         name_combo.grid(row=1, column=1, columnspan=2, sticky=tk.W, pady=8)
         
-        # 游戏安装目录
-        ttk.Label(main_frame, text="游戏目录:").grid(row=2, column=0, sticky=tk.W, pady=8)
+        ttk.Label(main_frame, text=self.t("game_dir")).grid(row=2, column=0, sticky=tk.W, pady=8)
         install_var = tk.StringVar()
         ttk.Entry(main_frame, textvariable=install_var, width=58).grid(row=2, column=1, sticky=tk.W, pady=8)
         
         def browse_install():
-            path = filedialog.askdirectory(title="选择游戏安装目录")
+            path = filedialog.askdirectory(title=self.t("game_dir"))
             if path:
                 install_var.set(path)
                 if not name_var.get():
                     name_var.set(Path(path).name)
         
-        ttk.Button(main_frame, text="浏览", command=browse_install, width=8).grid(row=2, column=2, padx=5, pady=8)
+        ttk.Button(main_frame, text=self.t("browse"), command=browse_install, width=8).grid(row=2, column=2, padx=5, pady=8)
         
-        # 存档路径
-        ttk.Label(main_frame, text="存档路径:").grid(row=3, column=0, sticky=tk.W, pady=8)
+        ttk.Label(main_frame, text=self.t("save_path")).grid(row=3, column=0, sticky=tk.W, pady=8)
         save_var = tk.StringVar()
         ttk.Entry(main_frame, textvariable=save_var, width=58).grid(row=3, column=1, sticky=tk.W, pady=8)
         
         def browse_save():
-            path = filedialog.askdirectory(title="选择存档目录")
+            path = filedialog.askdirectory(title=self.t("save_path"))
             if path:
                 save_var.set(path)
         
-        ttk.Button(main_frame, text="浏览", command=browse_save, width=8).grid(row=3, column=2, padx=5, pady=8)
+        ttk.Button(main_frame, text=self.t("browse"), command=browse_save, width=8).grid(row=3, column=2, padx=5, pady=8)
         
-        # 状态
-        status_var = tk.StringVar(value="选择游戏目录或输入名称后点击扫描")
+        status_var = tk.StringVar(value=self.t("scan_hint"))
         ttk.Label(main_frame, textvariable=status_var, style='Info.TLabel'
                  ).grid(row=4, column=0, columnspan=3, sticky=tk.W, pady=5)
         
-        # 扫描结果
-        ttk.Label(main_frame, text="扫描结果:").grid(row=5, column=0, sticky=tk.NW, pady=5)
+        ttk.Label(main_frame, text=self.t("scan_result")).grid(row=5, column=0, sticky=tk.NW, pady=5)
         
         result_frame = ttk.Frame(main_frame)
         result_frame.grid(row=5, column=1, columnspan=2, sticky=tk.NSEW, pady=5)
         
         result_list = tk.Listbox(
-            result_frame, height=8,
-            background=StyleConfig.BG_SECONDARY,
-            foreground=StyleConfig.FG_PRIMARY,
-            selectbackground=StyleConfig.ACCENT,
-            selectforeground='white',
-            font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_SMALL),
+            result_frame, height=8, background=StyleConfig.BG_SECONDARY,
+            foreground=StyleConfig.FG_PRIMARY, selectbackground=StyleConfig.ACCENT,
+            selectforeground='white', font=(StyleConfig.FONT_FAMILY, StyleConfig.FONT_SIZE_SMALL),
             borderwidth=0, highlightthickness=0
         )
         result_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -584,7 +723,7 @@ class GameSaveManager:
             
             result_list.delete(0, tk.END)
             found_paths.clear()
-            status_var.set("正在扫描...")
+            status_var.set(self.t("scanning"))
             dialog.update()
             
             all_paths = []
@@ -620,21 +759,19 @@ class GameSaveManager:
                     found_paths.append(p)
                 result_list.selection_set(0)
                 save_var.set(all_paths[0])
-                status_var.set(f"找到 {len(all_paths)} 个可能的存档目录")
+                status_var.set(self.t("found_paths").format(len(all_paths)))
             else:
-                status_var.set("未找到存档，请手动选择")
+                status_var.set(self.t("not_found"))
         
-        # 操作按钮
         btn_row = ttk.Frame(main_frame)
         btn_row.grid(row=6, column=0, columnspan=3, pady=15, sticky=tk.W)
         
-        ttk.Button(btn_row, text="数据库检测", command=lambda: (
+        ttk.Button(btn_row, text=self.t("db_detect"), command=lambda: (
             save_var.set(self.find_known_save_path(name_var.get()) or ""),
-            status_var.set("已从数据库检测" if self.find_known_save_path(name_var.get()) else "数据库中未找到")
+            status_var.set(self.t("db_found") if self.find_known_save_path(name_var.get()) else self.t("db_not_found"))
         ), width=12).pack(side=tk.LEFT, padx=3)
-        ttk.Button(btn_row, text="扫描存档", command=scan_saves, width=10).pack(side=tk.LEFT, padx=3)
+        ttk.Button(btn_row, text=self.t("scan"), command=scan_saves, width=10).pack(side=tk.LEFT, padx=3)
         
-        # 底部按钮
         btn_bottom = ttk.Frame(main_frame)
         btn_bottom.grid(row=7, column=0, columnspan=3, pady=20)
         
@@ -643,13 +780,13 @@ class GameSaveManager:
             path = save_var.get().strip()
             
             if not name:
-                messagebox.showerror("错误", "请输入游戏名称")
+                messagebox.showerror("Error", self.t("enter_game_name"))
                 return
             if not path:
-                messagebox.showerror("错误", "请选择存档路径")
+                messagebox.showerror("Error", self.t("select_save_path"))
                 return
             if name in self.games:
-                messagebox.showerror("错误", "游戏已存在")
+                messagebox.showerror("Error", self.t("game_exists"))
                 return
             
             self.games[name] = {
@@ -659,48 +796,48 @@ class GameSaveManager:
             self.save_config()
             self.refresh_game_list()
             dialog.destroy()
-            messagebox.showinfo("成功", f"已添加游戏: {name}")
+            messagebox.showinfo("Success", f"{self.t('game_added')}: {name}")
         
-        ttk.Button(btn_bottom, text="确定", command=confirm, width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_bottom, text="取消", command=dialog.destroy, width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_bottom, text=self.t("confirm"), command=confirm, width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_bottom, text=self.t("cancel"), command=dialog.destroy, width=12).pack(side=tk.LEFT, padx=5)
         
         main_frame.rowconfigure(5, weight=1)
     
     def delete_game(self):
         selection = self.game_listbox.curselection()
         if not selection:
-            messagebox.showwarning("提示", "请先选择一个游戏")
+            messagebox.showwarning("", self.t("select_game_first"))
             return
         
         name = self.game_listbox.get(selection[0])
-        if messagebox.askyesno("确认删除", f"确定要删除游戏 '{name}' 吗？\n\n备份文件不会被删除"):
+        if messagebox.askyesno("", self.t("confirm_delete_game").format(name)):
             del self.games[name]
             self.save_config()
             self.refresh_game_list()
             self.current_game = None
-            self.game_info_label.config(text="请选择游戏")
+            self.game_info_label.config(text=self.t("select_game"))
             self.refresh_backup_list()
     
     def edit_game_path(self):
         selection = self.game_listbox.curselection()
         if not selection:
-            messagebox.showwarning("提示", "请先选择一个游戏")
+            messagebox.showwarning("", self.t("select_game_first"))
             return
         
         name = self.game_listbox.get(selection[0])
         current = self.games[name].get('save_path', '')
-        new_path = filedialog.askdirectory(title="选择存档目录", initialdir=current)
+        new_path = filedialog.askdirectory(title=self.t("save_path"), initialdir=current)
         if new_path:
             self.games[name]['save_path'] = new_path
             self.save_config()
             if self.current_game == name:
                 display_path = new_path if len(new_path) <= 60 else "..." + new_path[-57:]
                 self.game_info_label.config(text=display_path)
-            messagebox.showinfo("成功", "路径已更新")
+            messagebox.showinfo("", self.t("path_updated"))
     
     def create_backup(self):
         if not self.current_game:
-            messagebox.showwarning("提示", "请先选择一个游戏")
+            messagebox.showwarning("", self.t("select_game_first"))
             return
         
         info = self.games[self.current_game]
@@ -708,11 +845,12 @@ class GameSaveManager:
         backup_dir = Path(info['backup_dir'])
         
         if not save_path.exists():
-            messagebox.showerror("错误", "存档路径不存在")
+            messagebox.showerror("", self.t("save_path_not_exist"))
             return
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        name = simpledialog.askstring("创建备份", "请输入备份名称:", initialvalue=f"backup_{timestamp}")
+        name = simpledialog.askstring(self.t("create_backup_title"), self.t("enter_backup_name"), 
+                                      initialvalue=f"backup_{timestamp}")
         if not name:
             return
         
@@ -724,16 +862,16 @@ class GameSaveManager:
             backup_dir.mkdir(parents=True, exist_ok=True)
             shutil.copytree(save_path, backup_path)
             self.refresh_backup_list()
-            messagebox.showinfo("成功", f"备份创建成功: {name}")
+            messagebox.showinfo("", f"{self.t('backup_created')}: {name}")
         except Exception as e:
-            messagebox.showerror("错误", f"备份失败: {str(e)}")
+            messagebox.showerror("", f"{self.t('backup_failed')}: {str(e)}")
         finally:
             self.root.config(cursor="")
     
     def restore_backup(self):
         selection = self.backup_tree.selection()
         if not selection:
-            messagebox.showwarning("提示", "请先选择一个备份")
+            messagebox.showwarning("", self.t("select_backup_first"))
             return
         
         backup_name = self.backup_tree.item(selection[0])['values'][0]
@@ -741,15 +879,13 @@ class GameSaveManager:
         save_path = Path(info['save_path'])
         backup_path = Path(info['backup_dir']) / backup_name
         
-        if not messagebox.askyesno("确认恢复", 
-                                   f"确定恢复到 '{backup_name}' 吗？\n\n当前存档将被覆盖！\n（恢复前会自动备份当前存档）"):
+        if not messagebox.askyesno("", self.t("confirm_restore").format(backup_name)):
             return
         
         try:
             self.root.config(cursor="watch")
             self.root.update()
             
-            # 恢复前自动备份当前存档
             if save_path.exists():
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 auto_backup_name = f"_auto_backup_before_restore_{timestamp}"
@@ -757,62 +893,57 @@ class GameSaveManager:
                 
                 try:
                     shutil.copytree(save_path, auto_backup_path)
-                    print(f"已自动备份当前存档到: {auto_backup_name}")
                 except Exception as e:
-                    # 如果自动备份失败，询问是否继续
                     self.root.config(cursor="")
-                    if not messagebox.askyesno("自动备份失败", 
-                                               f"恢复前自动备份失败：{str(e)}\n\n是否仍要继续恢复？"):
+                    if not messagebox.askyesno("", self.t("auto_backup_failed").format(str(e))):
                         return
                     self.root.config(cursor="watch")
                 
-                # 删除当前存档
                 shutil.rmtree(save_path)
             
-            # 恢复备份
             shutil.copytree(backup_path, save_path)
             self.refresh_backup_list()
-            messagebox.showinfo("成功", f"存档恢复成功！\n\n当前存档已自动备份")
+            messagebox.showinfo("", self.t("restore_success"))
         except Exception as e:
-            messagebox.showerror("错误", f"恢复失败: {str(e)}")
+            messagebox.showerror("", f"{self.t('restore_failed')}: {str(e)}")
         finally:
             self.root.config(cursor="")
     
     def delete_backup(self):
         selection = self.backup_tree.selection()
         if not selection:
-            messagebox.showwarning("提示", "请先选择一个备份")
+            messagebox.showwarning("", self.t("select_backup_first"))
             return
         
         name = self.backup_tree.item(selection[0])['values'][0]
-        if messagebox.askyesno("确认删除", f"确定删除备份 '{name}' 吗？"):
+        if messagebox.askyesno("", self.t("confirm_delete_backup").format(name)):
             try:
                 shutil.rmtree(Path(self.games[self.current_game]['backup_dir']) / name)
                 self.refresh_backup_list()
-                messagebox.showinfo("成功", "备份已删除")
+                messagebox.showinfo("", self.t("delete_success"))
             except Exception as e:
-                messagebox.showerror("错误", f"删除失败: {str(e)}")
+                messagebox.showerror("", f"{self.t('delete_failed')}: {str(e)}")
     
     def rename_backup(self):
         selection = self.backup_tree.selection()
         if not selection:
-            messagebox.showwarning("提示", "请先选择一个备份")
+            messagebox.showwarning("", self.t("select_backup_first"))
             return
         
         old_name = self.backup_tree.item(selection[0])['values'][0]
-        new_name = simpledialog.askstring("重命名", "新名称:", initialvalue=old_name)
+        new_name = simpledialog.askstring(self.t("rename_title"), self.t("new_name"), initialvalue=old_name)
         if new_name and new_name != old_name:
             try:
                 backup_dir = Path(self.games[self.current_game]['backup_dir'])
                 (backup_dir / old_name).rename(backup_dir / new_name)
                 self.refresh_backup_list()
-                messagebox.showinfo("成功", "重命名成功")
+                messagebox.showinfo("", self.t("rename_success"))
             except Exception as e:
-                messagebox.showerror("错误", f"重命名失败: {str(e)}")
+                messagebox.showerror("", f"{self.t('rename_failed')}: {str(e)}")
     
     def open_backup_dir(self):
         if not self.current_game:
-            messagebox.showwarning("提示", "请先选择一个游戏")
+            messagebox.showwarning("", self.t("select_game_first"))
             return
         
         backup_dir = Path(self.games[self.current_game]['backup_dir'])
@@ -822,7 +953,7 @@ class GameSaveManager:
 
 def main():
     root = tk.Tk()
-    GameSaveManager(root)
+    SaveVault(root)
     root.mainloop()
 
 
