@@ -300,7 +300,7 @@ def scan_appdata_for_game(game_name, game_dir=None):
     search_paths = [
         os.environ.get("APPDATA", ""),
         os.environ.get("LOCALAPPDATA", ""),
-        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Low"),
+        os.path.join(os.environ.get("USERPROFILE", ""), "AppData", "LocalLow"),  # 修复：正确的 LocalLow 路径
         os.path.join(os.environ.get("USERPROFILE", ""), "Saved Games"),
         os.path.join(os.environ.get("USERPROFILE", ""), "Documents", "My Games"),
         os.path.join(os.environ.get("USERPROFILE", ""), "Documents"),
@@ -342,7 +342,7 @@ def scan_appdata_for_game(game_name, game_dir=None):
 
 def scan_all_local_appdata():
     found = []
-    local_low = Path(os.environ.get("LOCALAPPDATA", "")) / "Low"
+    local_low = Path(os.environ.get("USERPROFILE", "")) / "AppData" / "LocalLow"
     if not local_low.exists():
         return found
     for vendor in local_low.iterdir():
