@@ -1,12 +1,12 @@
-# Game Save Manager
+# SaveVault
 
-[![Release](https://img.shields.io/github/v/release/1807781577/game-save-manager?include_prereleases)](https://github.com/1807781577/game-save-manager/releases)
-[![Downloads](https://img.shields.io/github/downloads/1807781577/game-save-manager/total)](https://github.com/1807781577/game-save-manager/releases)
-[![License](https://img.shields.io/github/license/1807781577/game-save-manager)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/1807781577/SaveVault?include_prereleases)](https://github.com/1807781577/SaveVault/releases)
+[![Downloads](https://img.shields.io/github/downloads/1807781577/SaveVault/total)](https://github.com/1807781577/SaveVault/releases)
+[![License](https://img.shields.io/github/license/1807781577/SaveVault)](LICENSE)
 
 A simple and elegant tool for backing up and managing game saves on Windows. Perfect for gamers who want multiple save slots for games that don't natively support them.
 
-**[⬇️ Download Latest Version](https://github.com/1807781577/game-save-manager/releases/latest)**
+**[⬇️ Download Latest Version](https://github.com/1807781577/SaveVault/releases/latest)**
 
 [中文说明](#中文说明)
 
@@ -26,15 +26,15 @@ A simple and elegant tool for backing up and managing game saves on Windows. Per
 ## Download & Installation
 
 ### Quick Start (Recommended)
-1. Download `GameSaveManager.exe` from [Releases](https://github.com/1807781577/game-save-manager/releases/latest)
+1. Download `SaveVault.exe` from [Releases](https://github.com/1807781577/SaveVault/releases/latest)
 2. Double-click to run
 3. No Python or additional software needed
 
 ### Run from Source
 ```bash
-git clone https://github.com/1807781577/game-save-manager.git
-cd game-save-manager
-python game_save_manager.py
+git clone https://github.com/1807781577/SaveVault.git
+cd SaveVault
+python savevault.py
 ```
 
 ## Usage
@@ -81,8 +81,8 @@ python game_save_manager.py
 
 ## Data Storage
 
-- Configuration: `%USERPROFILE%/.game_save_manager/games.json`
-- Backups: `%USERPROFILE%/.game_save_manager/backups/`
+- Configuration: `%USERPROFILE%/.savevault/games.json`
+- Backups: `%USERPROFILE%/.savevault/backups/`
 
 ## Requirements
 
@@ -98,7 +98,7 @@ MIT License
 
 一个简单优雅的 Windows 游戏存档备份管理工具。适合那些想要多存档但游戏本身不支持的游戏。
 
-**[⬇️ 下载最新版本](https://github.com/1807781577/game-save-manager/releases/latest)**
+**[⬇️ 下载最新版本](https://github.com/1807781577/SaveVault/releases/latest)**
 
 ### 功能特点
 
@@ -114,7 +114,7 @@ MIT License
 
 ### 快速开始
 
-1. 下载 `GameSaveManager.exe`
+1. 下载 `SaveVault.exe`
 2. 双击运行
 3. 添加游戏 → 扫描存档 → 创建备份
 

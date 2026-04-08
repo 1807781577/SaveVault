@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Game Save Manager - 游戏存档备份工具
+SaveVault - 游戏存档备份工具
 支持多游戏、多存档管理，自动识别存档位置
 """
 
@@ -222,12 +222,12 @@ class GameSaveManager:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("Game Save Manager")
+        self.root.title("SaveVault")
         self.root.geometry("900x650")
         self.root.minsize(800, 550)
         
         # 配置路径
-        self.app_dir = Path.home() / ".game_save_manager"
+        self.app_dir = Path.home() / ".savevault"
         self.app_dir.mkdir(exist_ok=True)
         self.config_file = self.app_dir / "games.json"
         
@@ -346,7 +346,7 @@ class GameSaveManager:
         header_frame = ttk.Frame(main_container)
         header_frame.pack(fill=tk.X, pady=(0, 15))
         
-        title_label = ttk.Label(header_frame, text="Game Save Manager", style='Header.TLabel',
+        title_label = ttk.Label(header_frame, text="SaveVault", style='Header.TLabel',
                                font=(StyleConfig.FONT_FAMILY, 18, 'bold'))
         title_label.pack(side=tk.LEFT)
         

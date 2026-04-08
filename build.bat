@@ -1,34 +1,34 @@
 @echo off
 chcp 65001 >nul
 echo ====================================
-echo   游戏存档备份工具 - 打包脚本
+echo   SaveVault - Build Script
 echo ====================================
 echo.
 
-REM 检查 Python
+REM Check Python
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo [错误] 未找到 Python，请先安装 Python 3.7+
+    echo [Error] Python not found, please install Python 3.7+
     pause
     exit /b 1
 )
 
-REM 安装 PyInstaller
-echo [1/3] 正在安装 PyInstaller...
+REM Install PyInstaller
+echo [1/3] Installing PyInstaller...
 pip install pyinstaller -q
 
-REM 打包
-echo [2/3] 正在打包程序...
-pyinstaller --onefile --windowed --name "游戏存档备份工具" --icon=NONE game_save_manager.py
+REM Build
+echo [2/3] Building...
+pyinstaller --onefile --windowed --name "SaveVault" savevault.py
 
 if errorlevel 1 (
-    echo [错误] 打包失败
+    echo [Error] Build failed
     pause
     exit /b 1
 )
 
-echo [3/3] 打包完成！
+echo [3/3] Build complete!
 echo.
-echo 输出文件: dist\游戏存档备份工具.exe
+echo Output: dist\SaveVault.exe
 echo.
 pause
