@@ -107,6 +107,9 @@ gh release create v1.x.x "D:\game_save_manager\dist\SaveVault.exe" --title "v1.x
 ## 已修复的 Bug
 - [x] LocalLow 路径识别错误（之前错误使用 `AppData/Local/Low`，现在正确使用 `AppData/LocalLow`）
 
+## 已更新
+- [x] README.md 添加详细使用指南（中英双语）
+
 ## 待优化/待办
 - [ ] 用户测试反馈
 - [ ] 可能需要添加更多游戏到数据库
