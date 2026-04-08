@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/1807781577/SaveVault#readme
+    about: Please check the README before submitting an issue.
