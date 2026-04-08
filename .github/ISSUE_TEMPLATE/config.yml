@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 使用文档
-    url: https://github.com/1807781577/SaveVault#中文说明
-    about: 提交问题前请先查看 README 中的使用说明。
+  - name: 使用文档 / Documentation
+    url: https://github.com/1807781577/SaveVault#readme
+    about: 提交问题前请先查看使用说明。/ Please check the README before submitting an issue.
