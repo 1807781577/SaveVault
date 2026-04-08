@@ -109,6 +109,8 @@ gh release create v1.x.x "D:\game_save_manager\dist\SaveVault.exe" --title "v1.x
 
 ## 已更新
 - [x] README.md 添加详细使用指南（中英双语）
+  - 英文部分：Features, Download & Installation, Usage Guide, Safety Features, Supported Games, Data Storage, Notes
+  - 中文部分：功能特点、使用指南（详细操作步骤）、安全特性、常见游戏存档位置、注意事项、数据存储位置
 
 ## 待优化/待办
 - [ ] 用户测试反馈
@@ -121,6 +123,38 @@ gh release create v1.x.x "D:\game_save_manager\dist\SaveVault.exe" --title "v1.x
 - 双击 EXE 即可运行
 - 可复制到任意位置（桌面、U盘）
 - 数据完全本地存储，不联网
+
+---
+
+## 开发日志
+
+### 2026-04-08
+
+**项目创建**
+- 创建游戏存档备份工具项目
+- 实现基本功能：备份、恢复、删除、重命名
+- 添加游戏存档路径自动识别功能
+
+**UI 美化**
+- 深色主题 UI
+- 现代简洁的界面设计
+
+**安全功能**
+- 恢复前自动备份当前存档
+
+**国际化**
+- 添加中英文语言切换功能
+- Issue 模板中英双语
+- Release 说明中英双语
+
+**项目重命名**
+- 从 game-save-manager 重命名为 SaveVault
+
+**Bug 修复**
+- 修复 LocalLow 路径识别错误（AppData/Local/Low → AppData/LocalLow）
+
+**文档完善**
+- README.md 添加详细使用指南（中英双语）
 
 ---
 
