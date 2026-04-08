@@ -1,0 +1,67 @@
+# 游戏存档备份工具
+
+一个简单易用的本地单机游戏存档管理工具，支持多游戏、多存档备份。
+
+## 功能特性
+
+- **游戏管理**: 添加多个游戏，设置各自的存档路径
+- **创建备份**: 一键备份当前游戏存档，可自定义备份名称
+- **恢复存档**: 从备份列表中选择恢复，快速切换存档
+- **存档管理**: 删除、重命名备份，打开备份目录
+- **绿色便携**: 所有数据保存在本地，无需联网
+
+## 使用方法
+
+### 方式一：直接运行 Python 脚本
+
+1. 确保已安装 Python 3.7+
+2. 双击运行 `game_save_manager.py`
+
+### 方式二：打包成 EXE
+
+1. 双击运行 `build.bat`
+2. 等待打包完成
+3. 在 `dist` 文件夹找到 `游戏存档备份工具.exe`
+
+## 操作步骤
+
+1. **添加游戏**
+   - 点击「添加游戏」
+   - 输入游戏名称（如：艾尔登法环）
+   - 选择存档所在文件夹（如：`C:\Users\xxx\AppData\Roaming\EldenRing`）
+
+2. **创建备份**
+   - 选择游戏后点击「创建备份」
+   - 输入备份名称（如：一周目通关）
+   - 等待备份完成
+
+3. **恢复存档**
+   - 选择要恢复的备份
+   - 点击「恢复存档」
+   - 确认覆盖当前存档
+
+## 常见游戏存档位置
+
+| 游戏 | 存档位置 |
+|------|----------|
+| 艾尔登法环 | `%APPDATA%\EldenRing` |
+| 只狼 | `%APPDATA%\Sekiro` |
+| 黑暗之魂3 | `%APPDATA%\DarkSoulsIII` |
+| 赛博朋克2077 | `%USERPROFILE%\Saved Games\CD Projekt Red\Cyberpunk 2077` |
+| 巫师3 | `%USERPROFILE%\Documents\The Witcher 3\gamesaves` |
+| 博德之门3 | `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\PlayerProfiles\Public\Savegames\Story` |
+| 霍格沃茨之遗 | `%LOCALAPPDATA%\Hogwarts Legacy\Saved\SaveGames` |
+
+提示：可以在游戏运行时查看存档文件的修改时间来确认存档位置。
+
+## 数据存储
+
+- 配置文件: `~/.game_save_manager/games.json`
+- 备份数据: `~/.game_save_manager/backups/`
+
+## 注意事项
+
+1. 恢复存档会**覆盖**当前存档，请谨慎操作
+2. 某些游戏可能需要关闭后才能正确备份/恢复
+3. 建议定期备份存档到其他位置（如云盘）
+4. 部分游戏有云存档，可能需要在游戏设置中关闭
