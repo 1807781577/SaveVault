@@ -193,6 +193,8 @@ gh release create v1.x.x "D:\game_save_manager\dist\SaveVault.exe" --title "v1.x
 - [x] 测试功能
 
 **版本发布**
-- 准备发布 v1.3.0
-- 更新 README.md
-- 打包 EXE 并发布 Release
+- [x] 准备发布 v1.3.0
+- [x] 更新 README.md
+- [x] 打包 EXE 并发布 Release
+
+**发布链接**: https://github.com/1807781577/SaveVault/releases/tag/v1.3.0
