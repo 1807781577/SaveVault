@@ -21,7 +21,8 @@ A simple and elegant tool for backing up and managing game saves on Windows. Per
   - AppData/AppData.Local/AppData.LocalLow directories
   - Steam Cloud save directory
 - **Easy Backup Management** - Create, restore, rename, and delete backups
-- **Safety First** - Auto-backup current save before restore
+- **Clear Progress** - Clear current save data (auto-backup first)
+- **Safety First** - Auto-backup current save before restore/clear
 - **Language Toggle** - Chinese/English interface
 - **Dark Theme UI** - Modern and clean interface
 - **Portable EXE** - No installation required, just download and run
@@ -80,6 +81,7 @@ A simple and elegant tool for backing up and managing game saves on Windows. Per
 |--------|----------|
 | Delete / 删除 | Delete selected backup |
 | Rename / 重命名 | Rename backup |
+| Clear Progress / 清空进度 | Clear current save (auto-backup first) |
 | Open Folder / 打开目录 | Open backup folder in Explorer |
 | Language / 语言 | Toggle Chinese/English interface |
 
@@ -90,7 +92,8 @@ A simple and elegant tool for backing up and managing game saves on Windows. Per
 | Feature | Description |
 |---------|-------------|
 | Auto-backup before restore | Automatically saves current game state before overwriting |
-| Restore confirmation | Clear warning before any destructive operation |
+| Auto-backup before clear | Saves current progress before clearing save data |
+| Confirmation dialogs | Clear warning before any destructive operation |
 | Local data only | No network requests, all data stays on your computer |
 
 ---
@@ -151,6 +154,8 @@ MIT License
   - 游戏安装目录
   - AppData/LocalLow 目录（支持 `厂商\游戏名` 格式）
   - Steam 云存档
+- **备份管理** - 创建、恢复、删除、重命名备份
+- **清空进度** - 一键清空当前存档（自动备份）
 - **安全恢复** - 恢复前自动备份当前存档
 - **中英文切换** - 点击右上角「语言」按钮
 - **深色主题** - 现代简洁的界面
@@ -197,6 +202,7 @@ MIT License
 |------|------|
 | 删除 | 删除选中的备份 |
 | 重命名 | 重命名备份 |
+| 清空进度 | 清空当前存档（自动备份） |
 | 打开目录 | 打开备份文件夹 |
 | 语言 | 切换中/英文界面 |
 
@@ -205,6 +211,7 @@ MIT License
 ### 安全特性
 
 - ✅ 恢复前自动备份当前存档，防止误操作丢失
+- ✅ 清空前自动备份当前存档
 - ✅ 操作前确认提示
 - ✅ 数据完全本地存储，不联网
 

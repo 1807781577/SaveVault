@@ -96,6 +96,13 @@ LANGUAGES = {
         "language": "语言",
         "chinese": "中文",
         "english": "English",
+
+        # 清空进度 / Clear Progress
+        "clear_progress": "清空进度",
+        "confirm_clear_progress": "确定清空「{}」的全部进度吗？\n\n此操作将删除当前存档的所有内容！\n（删除前会自动备份当前存档）",
+        "clear_success": "进度已清空！\n\n当前存档已自动备份",
+        "clear_failed": "清空失败",
+        "clear_no_save": "存档目录不存在或为空",
     },
     "en": {
         # Titles
@@ -176,6 +183,13 @@ LANGUAGES = {
         "language": "Language",
         "chinese": "中文",
         "english": "English",
+
+        # Clear Progress
+        "clear_progress": "Clear Progress",
+        "confirm_clear_progress": "Clear all progress for '{}'?\n\nThis will delete all current save data!\n(Current save will be auto-backed up)",
+        "clear_success": "Progress cleared!\n\nCurrent save has been auto-backed up",
+        "clear_failed": "Clear failed",
+        "clear_no_save": "Save directory does not exist or is empty",
     }
 }
 
@@ -545,16 +559,27 @@ class SaveVault:
         btn_frame2 = ttk.Frame(self.right_panel)
         btn_frame2.pack(fill=tk.X, pady=(10, 0))
         
-        self.create_btn = ttk.Button(btn_frame2, text=self.t("create_backup"), width=10, command=self.create_backup)
-        self.create_btn.pack(side=tk.LEFT, padx=2)
-        self.restore_btn = ttk.Button(btn_frame2, text=self.t("restore"), width=8, command=self.restore_backup)
-        self.restore_btn.pack(side=tk.LEFT, padx=2)
-        self.del_backup_btn = ttk.Button(btn_frame2, text=self.t("delete"), width=8, command=self.delete_backup)
-        self.del_backup_btn.pack(side=tk.LEFT, padx=2)
-        self.rename_btn = ttk.Button(btn_frame2, text=self.t("rename"), width=8, command=self.rename_backup)
-        self.rename_btn.pack(side=tk.LEFT, padx=2)
-        self.open_dir_btn = ttk.Button(btn_frame2, text=self.t("open_dir"), width=10, command=self.open_backup_dir)
-        self.open_dir_btn.pack(side=tk.LEFT, padx=2)
+        # 使用 grid 布局实现按钮自适应
+        buttons = [
+            (self.t("create_backup"), self.create_backup),
+            (self.t("restore"), self.restore_backup),
+            (self.t("delete"), self.delete_backup),
+            (self.t("rename"), self.rename_backup),
+            (self.t("clear_progress"), self.clear_progress),
+            (self.t("open_dir"), self.open_backup_dir),
+        ]
+        
+        for i, (text, cmd) in enumerate(buttons):
+            btn = ttk.Button(btn_frame2, text=text, command=cmd)
+            btn.grid(row=0, column=i, padx=2, pady=2, sticky="ew")
+            btn_frame2.columnconfigure(i, weight=1)
+        
+        self.create_btn = btn_frame2.winfo_children()[0]
+        self.restore_btn = btn_frame2.winfo_children()[1]
+        self.del_backup_btn = btn_frame2.winfo_children()[2]
+        self.rename_btn = btn_frame2.winfo_children()[3]
+        self.clear_btn = btn_frame2.winfo_children()[4]
+        self.open_dir_btn = btn_frame2.winfo_children()[5]
         
         # 底部状态栏 / Status bar
         status_frame = ttk.Frame(main_container)
@@ -580,6 +605,7 @@ class SaveVault:
         self.restore_btn.config(text=self.t("restore"))
         self.del_backup_btn.config(text=self.t("delete"))
         self.rename_btn.config(text=self.t("rename"))
+        self.clear_btn.config(text=self.t("clear_progress"))
         self.open_dir_btn.config(text=self.t("open_dir"))
         
         self.backup_tree.heading('name', text=self.t("backup_name"))
@@ -949,6 +975,49 @@ class SaveVault:
         backup_dir = Path(self.games[self.current_game]['backup_dir'])
         backup_dir.mkdir(parents=True, exist_ok=True)
         os.startfile(backup_dir)
+
+    def clear_progress(self):
+        """清空当前游戏的存档进度"""
+        if not self.current_game:
+            messagebox.showwarning("", self.t("select_game_first"))
+            return
+
+        info = self.games[self.current_game]
+        save_path = Path(info['save_path'])
+
+        # 检查存档目录是否存在且有内容
+        if not save_path.exists() or not any(save_path.iterdir()):
+            messagebox.showinfo("", self.t("clear_no_save"))
+            return
+
+        # 二次确认
+        if not messagebox.askyesno("", self.t("confirm_clear_progress").format(self.current_game)):
+            return
+
+        try:
+            self.root.config(cursor="watch")
+            self.root.update()
+
+            # 自动备份当前存档
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            auto_backup_name = f"_auto_backup_before_clear_{timestamp}"
+            auto_backup_path = Path(info['backup_dir']) / auto_backup_name
+            Path(info['backup_dir']).mkdir(parents=True, exist_ok=True)
+            shutil.copytree(save_path, auto_backup_path)
+
+            # 清空存档目录（删除内部所有内容，保留目录本身）
+            for item in save_path.iterdir():
+                if item.is_file():
+                    item.unlink()
+                else:
+                    shutil.rmtree(item)
+
+            self.refresh_backup_list()
+            messagebox.showinfo("", self.t("clear_success"))
+        except Exception as e:
+            messagebox.showerror("", f"{self.t('clear_failed')}: {str(e)}")
+        finally:
+            self.root.config(cursor="")
 
 
 def main():
